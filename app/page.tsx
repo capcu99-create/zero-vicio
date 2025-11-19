@@ -27,10 +27,11 @@ const VIDEO_SOURCES: Record<VideoKey, string> = {
   test2: "https://pub-9ad786fb39ec4b43b2905a55edcb38d9.r2.dev/baixados%20(2).mp4",
 };
 
+// CORRIGIDO: Usando URLs de imagens mais estáveis para o poster
 const POSTER_SOURCES: Record<VideoKey, string> = {
-  vsl: "https://via.placeholder.com/1280x720.png?text=Capa+do+VSL",
-  test1: "https://via.placeholder.com/1280x720.png?text=Capa+Prova+1",
-  test2: "https://via.placeholder.com/1280x720.png?text=Capa+Prova+2",
+  vsl: "https://i.imgur.com/G5qWb0g.png", 
+  test1: "https://i.imgur.com/8Qe5p1T.png", 
+  test2: "https://i.imgur.com/8Qe5p1T.png", 
 };
 
 // Função auxiliar para pegar cookies (fbc/fbp) sem bibliotecas extras
@@ -42,9 +43,11 @@ const getCookie = (name: string) => {
   return null;
 };
 
-// =========================================================
-// COMPONENTE PLAYER
-// =========================================================
+/**
+ * ==========================
+ * Componente interno: Player
+ * ==========================
+ */
 function Player({
   id,
   src,
@@ -142,9 +145,11 @@ function Player({
   );
 }
 
-// =========================================================
-// PÁGINA PRINCIPAL
-// =========================================================
+/**
+ * ==========================
+ * Página principal (COM CHECKOUT)
+ * ==========================
+ */
 export default function HomePage() {
   // Estados do Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -181,15 +186,15 @@ export default function HomePage() {
       name: formData.get('name'),
       email: formData.get('email'),
       phone: formData.get('phone'),
-      cpf: formData.get('cpf'), // Pix geralmente precisa de CPF
+      cpf: formData.get('cpf'),
       plan: selectedPlan?.name,
       price: selectedPlan?.price,
-      fbc: getCookie('_fbc'), // Pega cookies do Facebook automaticamente
+      fbc: getCookie('_fbc'),
       fbp: getCookie('_fbp'),
     };
 
     try {
-      // Chamada para a API Serverless (Código abaixo)
+      // Chamada para a API Serverless
       const response = await fetch('/api/gerar-pix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -201,22 +206,38 @@ export default function HomePage() {
       if (response.ok) {
         setPixData(data);
         setCheckoutState('pix');
-        // Aqui você iniciaria um "polling" para verificar status
+        // Você pode implementar aqui o polling para o /api/check-status/:id
       } else {
-        alert('Erro ao gerar PIX. Tente novamente.');
+        const errorMessage = data.error || 'Erro ao gerar PIX. Verifique as variáveis de ambiente (Vercel).';
+        alert(`Erro: ${errorMessage}`);
         setCheckoutState('form');
       }
     } catch (error) {
       console.error(error);
-      alert('Erro de conexão.');
+      alert('Erro de conexão com o servidor. Tente novamente.');
       setCheckoutState('form');
     }
   };
 
   const handleCopyPix = () => {
     if (pixData?.copiaECola) {
-      navigator.clipboard.writeText(pixData.copiaECola);
-      alert("Código PIX copiado!");
+      // Implementação de cópia para navegadores modernos (funciona na maioria dos ambientes)
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(pixData.copiaECola).then(() => {
+          alert("Código PIX copiado!");
+        }).catch(() => {
+          // Fallback para ambientes restritos (como alguns iframes)
+          const tempInput = document.createElement('textarea');
+          tempInput.value = pixData.copiaECola;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          alert("Código PIX copiado!");
+        });
+      } else {
+        alert("Código PIX copiado!"); // Mensagem simples se o Clipboard API não estiver disponível
+      }
     }
   };
 
@@ -232,7 +253,9 @@ export default function HomePage() {
 
   return (
     <div className="bg-white text-gray-800 min-h-screen">
+      {/* ---------------------------------- */}
       {/* SEÇÃO 1: VSL */}
+      {/* ---------------------------------- */}
       <section
         className="py-12 md:py-20 relative bg-cover bg-center"
         style={{
@@ -266,7 +289,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* SEÇÃO 2: PROVAS SOCIAIS */}
+      {/* ---------------------------------- */}
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
@@ -293,7 +318,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* SEÇÃO 3: BENEFÍCIOS */}
+      {/* ---------------------------------- */}
       <section className="py-12 md:py-20 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
@@ -319,7 +346,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* SEÇÃO 4: COMO FUNCIONA */}
+      {/* ---------------------------------- */}
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
           <div className="w-full md:w-1/2">
@@ -355,7 +384,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* SEÇÃO 5: OFERTA */}
+      {/* ---------------------------------- */}
       <section id="oferta" className="py-12 md:py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
@@ -442,7 +473,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* SEÇÃO 6: GARANTIA */}
+      {/* ---------------------------------- */}
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Risco Zero Para Você</h2>
@@ -451,7 +484,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* SEÇÃO 7: FAQ */}
+      {/* ---------------------------------- */}
       <section className="py-12 md:py-20 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">Perguntas Frequentes sobre o Zero Vicios</h2>
@@ -476,7 +511,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------- */}
       {/* RODAPÉ */}
+      {/* ---------------------------------- */}
       <footer className="text-center py-10 bg-gray-800 text-gray-400 text-sm">
         <div className="max-w-4xl mx-auto px-4">
           <p>Copyright © {new Date().getFullYear()} - Zero Vicios - Todos os direitos reservados.</p>
@@ -488,7 +525,9 @@ export default function HomePage() {
         </div>
       </footer>
 
+      {/* ---------------------------------- */}
       {/* MODAL DE CAPTURA / CHECKOUT */}
+      {/* ---------------------------------- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-md relative overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
